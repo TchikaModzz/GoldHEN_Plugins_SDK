@@ -1,21 +1,19 @@
 TARGET     := MyPluginPS4
 INTDIR     := build
 
-# Détection de la Toolchain
-ifeq ($(OO_PS4_TOOLCHAIN),)
-    TOOLCHAIN := $(HOME)/OpenOrbis
-else
-    TOOLCHAIN := $(OO_PS4_TOOLCHAIN)
-endif
+# Utilise la variable d'environnement du conteneur Docker
+TOOLCHAIN  := $(OO_PS4_TOOLCHAIN)
 
+# Inclusions des fichiers sources
 CFILES     := $(wildcard source/*.c)
 OBJS       := $(patsubst source/%.c, $(INTDIR)/%.o, $(CFILES))
 
-# Flags officiels d'OpenOrbis pour isoler la compilation PS4
-CFLAGS     := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c \
-              -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -I../include -Iinclude \
-              -O2 -Wall
+# Flags de compilation stricts pour forcer l'inclusion Orbis OS et rejeter l'hôte Linux
+CFLAGS     := -target x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c \
+              -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include \
+              -I../include -Iinclude -O2 -Wall
 
+# Flags de liaison pour le module .prx
 LDFLAGS    := -m elf_x86_64 -shared --script $(TOOLCHAIN)/link.x \
               -L$(TOOLCHAIN)/lib -lc -lkernel
 
