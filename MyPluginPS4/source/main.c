@@ -1,3 +1,6 @@
+typedef unsigned int       uint32_t;
+typedef unsigned long long uint64_t;
+
 #include "../include/GoldHEN.h"
 
 // Point d'entrée unique et obligatoire pour GoldHEN
