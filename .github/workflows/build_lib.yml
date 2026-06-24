@@ -1,36 +1,52 @@
-name: Build library check
+name: Build GoldHEN Plugin
 
 on:
   push:
-    paths:
-      - '**/*.c'
-      - '**/*.cpp'
-      - '**/*.h'
-      - '**/*.yml'
-      - '**/Makefile'
-      - '**/.bat'
+    branches: [ main, master ]
   pull_request:
-  workflow_dispatch:
+    branches: [ main, master ]
+  workflow_dispatch: # Ajoute un bouton pour lancer la compilation manuellement
 
 jobs:
-  build-linux:
+  build:
     runs-on: ubuntu-latest
+
     steps:
+    - name: Checkout du code
+      uses: actions/checkout@v4
 
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - name: Download OpenOrbis Toolchain
+    - name: Installation de Clang et LLD
       run: |
-        curl -sL https://github.com/illusion0001/OpenOrbis-PS4-Toolchain/releases/latest/download/toolchain.tar.gz | tar xz -C ./
-        sudo apt install llvm lld
-        echo "OO_PS4_TOOLCHAIN=$GITHUB_WORKSPACE/OpenOrbis/PS4Toolchain" >> $GITHUB_ENV
+        sudo apt-get update
+        sudo apt-get install -y clang lld make wget tar
 
-    - name: Build SDK Lib
+    - name: Installation d'OpenOrbis Toolchain v0.5.2
       run: |
-        clang -v
-        make DEBUGFLAGS=1
-        make PRINTF=1
-        make DEBUGFLAGS=1 PRINTF=1
-        make clean
-        make install
+        git clone --depth=1 --branch v0.5.2 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git $HOME/OpenOrbis
+        find $HOME/OpenOrbis/bin -type f -exec chmod +x {} \;
+
+    - name: Injection de la Sysroot FreeBSD 12.2
+      run: |
+        cd $HOME/OpenOrbis
+        wget https://archive.freebsd.org/pub/FreeBSD/releases/amd64/12.2-RELEASE/base.txz
+        tar -xf base.txz ./usr/include ./usr/lib
+        rm base.txz
+        ln -sfn $HOME/OpenOrbis/usr/include/c++/v1 $HOME/OpenOrbis/include/c++/v1
+
+    - name: Génération automatique des Stubs (libc, libkernel)
+      run: |
+        cd $HOME/OpenOrbis/scripts
+        python3 autobuild.py
+
+    - name: Compilation de votre Plugin PS4
+      run: |
+        export OO_PS4_TOOLCHAIN="$HOME/OpenOrbis"
+        # On se déplace dans VOTRE dossier avant de lancer la compilation
+        cd MyPluginPS4
+        make clean && make
+
+    - name: Téléversement du binaire (.prx)
+      uses: actions/upload-artifact@v4
+      with:
+        name: GoldHEN-MyPluginPS4-Artifact
+        path: "MyPluginPS4/*.prx"
