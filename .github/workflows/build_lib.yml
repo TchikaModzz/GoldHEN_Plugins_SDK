@@ -25,14 +25,13 @@ jobs:
         git clone --depth=1 --branch v0.5.2 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git $HOME/OpenOrbis
         find $HOME/OpenOrbis/bin -type f -exec chmod +x {} \;
 
-    - name: Injection de la Sysroot FreeBSD 12.2 (Miroir Stable)
+    - name: Injection de la Sysroot Orbis (Headers officiels OpenOrbis)
       run: |
         cd $HOME/OpenOrbis
-        # Utilisation du miroir direct de confiance pour éviter les redirections 404
-        wget http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/12.2-RELEASE/base.txz
-        tar -xf base.txz ./usr/include ./usr/lib
-        rm base.txz
-        ln -sfn $HOME/OpenOrbis/usr/include/c++/v1 $HOME/OpenOrbis/include/c++/v1
+        # On télécharge directement les en-têtes officiels fournis par OpenOrbis au lieu de l'archive FreeBSD
+        wget https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.1/orbis-sysroot.tar.gz
+        tar -xf orbis-sysroot.tar.gz
+        rm orbis-sysroot.tar.gz
 
     - name: Génération automatique des Stubs (libc, libkernel)
       run: |
