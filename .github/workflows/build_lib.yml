@@ -17,19 +17,12 @@ jobs:
     - name: Installer les dépendances Linux (Make & Compilateurs)
       run: |
         sudo apt-get update
-        sudo apt-get install -y make clang lld wget tar git
+        sudo apt-get install -y make clang lld git
 
-    - name: Installer l'OpenOrbis PS4 Toolchain
+    - name: Cloner la Toolchain OpenOrbis (Version Linux pré-compilée)
       run: |
-        # Création du dossier de destination dans le répertoire personnel du runner
-        mkdir -p $HOME/OpenOrbis
-        
-        # Téléchargement de l'archive officielle depuis le miroir d'archive de la communauté
-        wget https://github.com/orbisdev/openorbis-toolchain/releases/download/v0.5.2/OpenOrbis-PS4-Toolchain.tgz -O OpenOrbis.tgz
-        
-        # Extraction propre
-        tar -xzf OpenOrbis.tgz -C $HOME/OpenOrbis --strip-components=1
-        rm OpenOrbis.tgz
+        # On clone directement le dépôt qui contient l'arborescence complète et les outils Linux
+        git clone https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git $HOME/OpenOrbis
 
     - name: Télécharger le SDK GoldHEN
       run: |
@@ -37,14 +30,17 @@ jobs:
 
     - name: Compiler le Plugin (.prx)
       run: |
-        # Déclaration explicite des variables requises par le Makefile
+        # Configuration des variables d'environnement pour le Makefile
         export OO_PS4_TOOLCHAIN="$HOME/OpenOrbis"
         export GOLDHEN_SDK="$HOME/GoldHEN_SDK"
         
-        # Ajout du dossier bin de la toolchain au PATH pour que "create-fself" soit trouvé
+        # Ajout des outils Linux (comme create-fself) au PATH
         export PATH="$OO_PS4_TOOLCHAIN/bin/linux:$PATH"
         
-        # Nettoyage et compilation
+        # Donner les permissions d'exécution aux outils OpenOrbis (sécurité Linux)
+        chmod +x $OO_PS4_TOOLCHAIN/bin/linux/*
+        
+        # Lancement de la compilation
         make clean
         make
 
