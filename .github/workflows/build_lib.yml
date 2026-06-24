@@ -10,16 +10,27 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # On utilise l'image Docker officielle d'OpenOrbis qui contient déjà TOUT (plus de 404 possible)
-    container: openorbis/toolchain:v0.5.2
 
     steps:
     - name: Checkout du code du plugin
       uses: actions/checkout@v4
 
+    - name: Installation de Clang et LLD
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang lld make
+
+    - name: Récupération des scripts de liaison OpenOrbis
+      run: |
+        # On clone uniquement les fichiers de configuration de l'éditeur de liens
+        git clone --depth=1 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git $HOME/OpenOrbis
+        # Création d'une sysroot factice pour Clang
+        mkdir -p $HOME/OpenOrbis/include
+        mkdir -p $HOME/OpenOrbis/lib
+
     - name: Compilation du Plugin PS4
       run: |
-        # La variable OO_PS4_TOOLCHAIN est déjà configurée par défaut dans ce conteneur
+        export OO_PS4_TOOLCHAIN="$HOME/OpenOrbis"
         cd MyPluginPS4
         make clean && make
 
