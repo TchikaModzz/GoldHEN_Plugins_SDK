@@ -25,11 +25,11 @@ jobs:
         git clone --depth=1 --branch v0.5.2 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git $HOME/OpenOrbis
         find $HOME/OpenOrbis/bin -type f -exec chmod +x {} \;
 
-    - name: Injection de la Sysroot FreeBSD 12.2 (Lien Secours Historique)
+    - name: Injection de la Sysroot FreeBSD 12.2 (Lien Archive Global Stable)
       run: |
         cd $HOME/OpenOrbis
-        # Utilisation de l'URL du serveur d'archives FreeBSD pour éviter la 404
-        wget https://archive.freebsd.org/pub/FreeBSD/releases/amd64/12.2-RELEASE/base.txz
+        # URL mise à jour vers l'arborescence "old/releases" pour corriger la 404
+        wget https://ftp-archive.freebsd.org/pub/FreeBSD-Archive/old/releases/amd64/12.2-RELEASE/base.txz
         tar -xf base.txz ./usr/include ./usr/lib
         rm base.txz
         ln -sfn $HOME/OpenOrbis/usr/include/c++/v1 $HOME/OpenOrbis/include/c++/v1
