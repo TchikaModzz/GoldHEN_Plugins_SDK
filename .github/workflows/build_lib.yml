@@ -14,32 +14,25 @@ jobs:
     - name: Checkout du code
       uses: actions/checkout@v4
 
-    - name: Installer les dépendances (Clang & LLD)
+    - name: Installer les dépendances Linux (Make & Compilateurs)
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang lld make
+        sudo apt-get install -y make clang lld
 
-    - name: Télécharger et installer OpenOrbis Toolchain
-      run: |
-        wget https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.2/OpenOrbis-PS4-Toolchain.tgz
-        mkdir -p $HOME/OpenOrbis
-        tar -xzf OpenOrbis-PS4-Toolchain.tgz -C $HOME/OpenOrbis
-        rm OpenOrbis-PS4-Toolchain.tgz
+    - name: Configurer automatiquement l'OpenOrbis PS4 Toolchain
+      uses: Almighty-Sausage/openorbis-action@v1
+      # Cette action configure automatiquement la variable d'environnement OO_PS4_TOOLCHAIN
 
     - name: Télécharger le SDK GoldHEN
       run: |
         git clone https://github.com/GoldHEN/GoldHEN_Plugins_SDK.git $HOME/GoldHEN_SDK
 
     - name: Compiler le Plugin (.prx)
-      env:
-        OO_PS4_TOOLCHAIN: ${{ github.workspace }}/../OpenOrbis
-        GOLDHEN_SDK: ${{ github.workspace }}/../GoldHEN_SDK
       run: |
-        # Définir explicitement les variables pour le compilateur
-        export OO_PS4_TOOLCHAIN="$HOME/OpenOrbis"
+        # On définit le chemin vers GoldHEN SDK pour notre Makefile
         export GOLDHEN_SDK="$HOME/GoldHEN_SDK"
         
-        # Lancer la compilation avec notre Makefile propre
+        # Lancer la compilation
         make clean
         make
 
