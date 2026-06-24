@@ -18,11 +18,29 @@ jobs:
     - name: Installation de Clang, LLD et Make
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang lld make
+        sudo apt-get install -y clang lld make wget tar
 
-    - name: Compilation du Plugin avec LLVM
+    - name: Installation d'OpenOrbis Toolchain v0.5.2
       run: |
-        # Configuration des drapeaux pour utiliser les inclusions locales du SDK
+        git clone --depth=1 --branch v0.5.2 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git $HOME/OpenOrbis
+        find $HOME/OpenOrbis/bin -type f -exec chmod +x {} \;
+
+    - name: Injection de la Sysroot officielle OpenOrbis (Lien valide)
+      run: |
+        cd $HOME/OpenOrbis
+        # Téléchargement de la Sysroot officielle depuis le dépôt d'OpenOrbis
+        wget https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.2/sysroot.tar.gz
+        tar -xf sysroot.tar.gz
+        rm sysroot.tar.gz
+
+    - name: Génération automatique des Stubs (libc, libkernel)
+      run: |
+        cd $HOME/OpenOrbis/scripts
+        python3 autobuild.py
+
+    - name: Compilation de votre Plugin PS4
+      run: |
+        export OO_PS4_TOOLCHAIN="$HOME/OpenOrbis"
         cd MyPluginPS4
         make clean && make
 
