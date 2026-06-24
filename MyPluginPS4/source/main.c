@@ -1,7 +1,7 @@
 #include "../include/GoldHEN.h"
 
-// Point d'entrée obligatoire appelé par GoldHEN au chargement du plugin
+// Point d'entrée unique et obligatoire pour GoldHEN
 int _main(void) {
-    // Votre logique de test ou d'initialisation s'exécutera ici
+    // Votre code d'initialisation de test
     return 0;
 }
