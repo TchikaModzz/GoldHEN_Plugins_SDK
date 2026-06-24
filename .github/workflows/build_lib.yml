@@ -1,41 +1,50 @@
-name: Build GoldHEN Plugin
+name: Build BO3 PS4 Plugin
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
+    branches: [ "main", "master" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout du code du plugin
+    - name: Checkout du code
       uses: actions/checkout@v4
 
-    - name: Installation de Clang et LLD
+    - name: Installer les dépendances (Clang & LLD)
       run: |
         sudo apt-get update
         sudo apt-get install -y clang lld make
 
-    - name: Récupération des scripts de liaison OpenOrbis
+    - name: Télécharger et installer OpenOrbis Toolchain
       run: |
-        # On clone uniquement les fichiers de configuration de l'éditeur de liens
-        git clone --depth=1 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git $HOME/OpenOrbis
-        # Création d'une sysroot factice pour Clang
-        mkdir -p $HOME/OpenOrbis/include
-        mkdir -p $HOME/OpenOrbis/lib
+        wget https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.2/OpenOrbis-PS4-Toolchain.tgz
+        mkdir -p $HOME/OpenOrbis
+        tar -xzf OpenOrbis-PS4-Toolchain.tgz -C $HOME/OpenOrbis
+        rm OpenOrbis-PS4-Toolchain.tgz
 
-    - name: Compilation du Plugin PS4
+    - name: Télécharger le SDK GoldHEN
       run: |
+        git clone https://github.com/GoldHEN/GoldHEN_Plugins_SDK.git $HOME/GoldHEN_SDK
+
+    - name: Compiler le Plugin (.prx)
+      env:
+        OO_PS4_TOOLCHAIN: ${{ github.workspace }}/../OpenOrbis
+        GOLDHEN_SDK: ${{ github.workspace }}/../GoldHEN_SDK
+      run: |
+        # Définir explicitement les variables pour le compilateur
         export OO_PS4_TOOLCHAIN="$HOME/OpenOrbis"
-        cd MyPluginPS4
-        make clean && make
+        export GOLDHEN_SDK="$HOME/GoldHEN_SDK"
+        
+        # Lancer la compilation avec notre Makefile propre
+        make clean
+        make
 
-    - name: Téléversement du binaire (.prx)
+    - name: Téléverser le fichier PRX (Artifact)
       uses: actions/upload-artifact@v4
       with:
-        name: GoldHEN-MyPluginPS4-Artifact
-        path: "MyPluginPS4/*.prx"
+        name: BO3-Plugin-PS4
+        path: build/MyPluginPS4.prx
