@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch: # Ajoute un bouton pour lancer la compilation manuellement
+  workflow_dispatch:
 
 jobs:
   build:
@@ -25,9 +25,10 @@ jobs:
         git clone --depth=1 --branch v0.5.2 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git $HOME/OpenOrbis
         find $HOME/OpenOrbis/bin -type f -exec chmod +x {} \;
 
-    - name: Injection de la Sysroot FreeBSD 12.2
+    - name: Injection de la Sysroot FreeBSD 12.2 (Lien Secours Historique)
       run: |
         cd $HOME/OpenOrbis
+        # Utilisation de l'URL du serveur d'archives FreeBSD pour éviter la 404
         wget https://archive.freebsd.org/pub/FreeBSD/releases/amd64/12.2-RELEASE/base.txz
         tar -xf base.txz ./usr/include ./usr/lib
         rm base.txz
@@ -41,7 +42,6 @@ jobs:
     - name: Compilation de votre Plugin PS4
       run: |
         export OO_PS4_TOOLCHAIN="$HOME/OpenOrbis"
-        # On se déplace dans VOTRE dossier avant de lancer la compilation
         cd MyPluginPS4
         make clean && make
 
